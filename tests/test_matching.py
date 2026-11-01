@@ -17,10 +17,10 @@ def claim(i, en, ar, kind, core, scene):
     return Claim(id=i, label=en, label_en=en, label_ar=ar, kind=kind, core=core, scene=scene)
 
 
-def run(ptype, claims, analyses, techs=None):
+def run(ptype, claims, analyses, techs=None, from_standard=False):
     std, th = standards.provider(ptype), standards.thresholds()
     techs = techs or [tech(n=i * 7) for i in range(len(analyses))]
-    return evaluate(ptype, std, th, claims, techs, analyses)
+    return evaluate(ptype, std, th, claims, techs, analyses, from_standard=from_standard)
 
 
 def codes(r):
@@ -45,9 +45,10 @@ def test_accommodation_needs_bedroom_and_bathroom():
     photos = [ImageAnalysis(scene="exterior"), ImageAnalysis(scene="bedroom", supports=["c1"]),
               ImageAnalysis(scene="pool"), ImageAnalysis(scene="view"), ImageAnalysis(scene="lobby")]
     r = run("accommodation", claims, photos)
-    c = codes(r)
-    assert "core_claim_missing" in c and "required_scene_missing" in c
-    assert not [x for x in r["required"] if x.scene == "bathroom"][0].present
+    missing = [i for i in r["listing_issues"] if i.code == "core_claim_missing"]
+    assert [i.claim for i in missing] == ["c2"]
+    assert {cc.claim.id: cc.status for cc in r["coverage"]} == {"c1": "shown", "c2": "missing"}
+    assert r["verdict"] == "needs_changes"
 
 
 def test_fnb_steak_contradicts_salad():
@@ -104,3 +105,57 @@ def test_messages_are_bilingual():
     r = run("activities", claims, [ImageAnalysis(scene="activity")])
     for i in r["listing_issues"]:
         assert i.message_en and i.message_ar and i.message_en != i.message_ar
+
+
+# --- criteria come from the description, not a fixed list per provider type ---
+
+def test_requirements_follow_the_description_not_the_category():
+    """A diving trip with diving photos needs no separate "place" or "people" photo:
+    the category scenes are suggestions, never blocks."""
+    claims = [claim("c1", "diving", "الغطس", "experience", True, "activity")]
+    photos = [ImageAnalysis(scene="activity", scenes=["activity", "place"], supports=["c1"]) for _ in range(4)]
+    techs = [tech(n=i * 7) for i in range(4)]
+    r = run("activities", claims, photos, techs)
+    assert not [i for i in r["listing_issues"] if i.severity == "block"], codes(r)
+    assert {x.code: x.status for x in r["rules"]} == {"min_photos": "pass", "cover": "pass"}
+    assert "الغطس" in r["rules"][1].label_ar
+    assert r["verdict"] == "ready"
+
+
+def test_one_photo_can_show_several_scenes():
+    claims = [claim("c1", "diving", "الغطس", "experience", True, "activity")]
+    photos = [ImageAnalysis(scene="activity", scenes=["activity", "place"], supports=["c1"])]
+    r = run("activities", claims, photos)
+    place = [s for s in r["suggested"] if s.scene == "place"][0]
+    assert place.present and place.photos == [1]
+
+
+def test_unanalysed_photos_are_not_counted_as_missing():
+    claims = [claim("c1", "diving", "الغطس", "experience", True, "activity")]
+    r = run("activities", claims, [None, None, None, None])
+    assert r["coverage"][0].status == "unchecked"
+    assert "core_claim_missing" not in codes(r) and "not_checked" in codes(r)
+    assert r["rules"][1].status == "unchecked"
+    assert r["verdict"] == "partly_checked"
+
+
+def test_no_visual_criteria_falls_back_to_the_category_standard():
+    from app.criteria import finalise
+    std = standards.provider("activities")
+    crit, from_standard = finalise([], std)
+    assert from_standard and [c.scene for c in crit] == std["fallback_required"]
+    photos = [ImageAnalysis(scene="activity"), ImageAnalysis(scene="people"),
+              ImageAnalysis(scene="host"), ImageAnalysis(scene="equipment")]
+    r = run("activities", crit, photos, from_standard=True)
+    assert "no_visual_claims" in codes(r)
+    assert [i.claim for i in r["listing_issues"] if i.code == "required_scene_missing"] == ["s_place"]
+
+
+def test_provider_criteria_are_cleaned():
+    from app.criteria import from_provider
+    std = standards.provider("activities")
+    out = from_provider(["قارب", {"label": "coral reef", "core": False}, {"label": ""}, "قارب",
+                         {"label": "x" * 200, "scene": "nowhere", "source": "standard"}], std)
+    assert [c.label for c in out][:2] == ["قارب", "coral reef"]
+    assert all(c.source == "provider" for c in out) and out[1].core is False
+    assert len(out) == 3 and len(out[2].label) == 80 and out[2].scene is None

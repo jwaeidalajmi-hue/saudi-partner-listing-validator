@@ -18,7 +18,8 @@ class VisionProvider(ABC):
 
     @abstractmethod
     async def analyze_image(self, data: bytes, mime: str, filename: str, provider_type: str,
-                            std: dict, claims: list[Claim]) -> ImageAnalysis:
+                            std: dict, claims: list[Claim]) -> ImageAnalysis | None:
+        """None means the provider could not see this photo; it is reported as not checked."""
         ...
 
 
@@ -51,14 +52,22 @@ def clean_claims(raw: dict, std: dict) -> list[Claim]:
             kind=str(c.get("kind") or "other"),
             core=bool(c.get("core", False)),
             scene=scene if scene in std["scenes"] else None,
+            source="description",
+            evidence_en=str(c.get("evidence_en") or "")[:160],
+            evidence_ar=str(c.get("evidence_ar") or "")[:160],
         ))
     return out
 
 
 def clean_analysis(raw: dict, std: dict, claim_ids: set[str]) -> ImageAnalysis:
     scene = raw.get("scene")
+    scene = scene if scene in std["scenes"] else "other"
+    scenes = [x for x in raw.get("scenes", []) if x in std["scenes"]][:4]
+    if scene != "other" and scene not in scenes:
+        scenes.insert(0, scene)
     return ImageAnalysis(
-        scene=scene if scene in std["scenes"] else "other",
+        scene=scene,
+        scenes=scenes,
         scene_confidence=float(raw.get("scene_confidence") or 0),
         objects=[str(x) for x in raw.get("objects", [])][:8],
         supports=[str(x) for x in raw.get("supports", []) if str(x) in claim_ids],

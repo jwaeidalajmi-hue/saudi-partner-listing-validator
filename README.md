@@ -2,6 +2,8 @@
 
 Checks a tourism listing's photos **against its own description**, and against a photo standard for each provider type, before the listing goes to content approval.
 
+Providers write descriptions in their own words, so there is no fixed checklist. The check **reads the description into criteria** (what the photos must show), lets the provider **edit, remove or add** criteria, and then checks every photo against them. "رحلة غطس" (a diving trip) needs a photo of diving; a provider can add "a boat" and the check will look for one.
+
 If the description says *swimming pool*, a photo must show a pool. If it offers *a bedroom with a king bed and a private bathroom*, there must be a bedroom photo and a bathroom photo. A café that serves *fresh salads* shouldn't show a steak, and a *t-shirt* store shouldn't show a coffee cup. Every photo is also checked for resolution (below HD, HD, Full HD, 4K), sharpness, exposure, overlays, collages and duplicates.
 
 This is a prototype for the Saudi Tourism Authority's Saudi Partner platform (TXLoad). The page uses TXLoad's look, in Arabic and English.
@@ -12,21 +14,22 @@ This is a prototype for the Saudi Tourism Authority's Saudi Partner platform (TX
 | Languages | Descriptions and feedback in Arabic and English |
 | Vision model | Claude (Anthropic) by default, behind one adapter so it can be replaced |
 | Local checks | Resolution tier, file size, orientation, sharpness, exposure, colour, duplicates |
-| Output | Verdict (Ready / Needs changes), score out of 100, claim-by-claim coverage, per-photo issues, bilingual fixes, JSON |
+| Criteria | Read from any description, Arabic or English; editable by the provider before the check |
+| Output | Verdict (Ready / Needs changes / Partly checked), score out of 100, criterion-by-criterion coverage, per-photo issues, bilingual fixes, JSON |
 
 ## Try it in two minutes
 
-You need Python 3.11 or newer, or Docker.
+You need Python 3.12 or newer (tested on 3.12, 3.13 and 3.14), or Docker.
 
 ```bash
-git clone https://github.com/<your-org>/saudi-partner-listing-validator.git
+git clone https://github.com/jwaeidalajmi-hue/saudi-partner-listing-validator.git
 cd saudi-partner-listing-validator
 cp .env.example .env          # add your ANTHROPIC_API_KEY for the real check
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Open <http://localhost:8000>, pick a **sample listing**, add photos and press **Check listing**.
+Open <http://localhost:8000>, write a description (or pick a **sample listing**), review the criteria under it, add photos and press **Check listing**.
 
 With Docker:
 
@@ -37,38 +40,41 @@ docker compose up --build
 
 ### No API key?
 
-Leave `ANTHROPIC_API_KEY` empty (or set `VISION_PROVIDER=mock`). The app then runs in **mock mode**. It is not computer vision: claims come from a small keyword list, and a photo's content is guessed from its **file name** (`pool.jpg`, `bathroom-2.png`, `steak-plate.jpg`). The local technical checks are real. Placeholder photos for each sample are in `samples/mock-photos/`. Use real photos with an API key to judge actual listings.
+Leave `ANTHROPIC_API_KEY` empty (or set `VISION_PROVIDER=mock`). The app then runs in **demo mode**, and the page says so. Demo mode **cannot see photos**: criteria come from a small keyword list (or the first phrase of the description), and a photo's content is guessed from its **file name** (`pool.jpg`, `bathroom-2.png`, `steak-plate.jpg`). A photo whose name says nothing, such as `IMG_2041.jpg`, is reported as **not checked**, never guessed. The technical checks (resolution, sharpness, light, duplicates) are real. Placeholder photos for each sample are in `samples/mock-photos/`. Use an API key to judge real photos.
+
+To add the key in GitHub Codespaces: on GitHub, **Settings → Secrets and variables → Codespaces → New repository secret**, name `ANTHROPIC_API_KEY`. Restart the codespace, then run without `VISION_PROVIDER=mock`.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-  D[Description] --> C[Read claims<br/>language model]
+  D[Description] --> C[Read criteria<br/>language model]
+  C --> E[Provider reviews:<br/>edit, remove, add]
   P[Photos] --> T[Technical checks<br/>OpenCV, Pillow]
   P --> V[Analyse each photo<br/>vision model]
-  C --> V
-  C --> M[Match and score]
+  E --> V
+  E --> M[Match and score]
   V --> M
   T --> M
   S[(standards.yaml<br/>per provider type)] --> M
-  M --> R[Report: verdict, score,<br/>claims, issues AR/EN]
+  M --> R[Report: verdict, score,<br/>criteria, issues AR/EN]
 ```
 
-1. **Claims.** The language model lists what the description says that a photo can show, marks each claim *core* (what the listing is about) or *extra*, and maps it to a scene.
+1. **Criteria.** The language model reads whatever the provider wrote, however short or long, and lists what a photo could show. Each criterion is *must show* (what the listing is about) or *nice to have*, with what a matching photo would contain. The page shows them under the description as the provider types; the provider can edit, remove or add their own. If the description names nothing a photo can show, the provider type's usual photos are used instead.
 2. **Technical checks.** These run locally on every photo: pixel size and tier, file size against TXLoad's 3 MB limit, orientation, sharpness (variance of the Laplacian), brightness and clipping, saturation, and a perceptual hash for duplicates.
-3. **Vision.** Each photo is labelled with a scene from its provider type's list. The model also lists the objects it sees and which claims the photo supports or contradicts. It flags unrelated photos, overlays (watermark, logo, text, border), collages, screenshots, stock or AI-looking images, people, children and licence plates, and gives a quality score from 1 to 5.
-4. **Match and score.** Plain rules in `app/matching.py` turn all of that into issues and a score out of 100: technical 30, claim coverage 35, relevance 20, required photos and cover 15. A listing is **Ready** at 80 or more with no blocking issue.
+3. **Vision.** Each photo is labelled with every scene it shows from its provider type's list (a diver over a reef is both *the activity* and *the place*). The model also lists the objects it sees and which criteria the photo shows or contradicts, judged by meaning in either language. It flags unrelated photos, overlays (watermark, logo, text, border), collages, screenshots, stock or AI-looking images, people, children and licence plates, and gives a quality score from 1 to 5.
+4. **Match and score.** Plain rules in `app/matching.py` turn all of that into issues and a score out of 100: technical 30, criteria coverage 35, relevance 20, completeness 15 (enough photos, a first photo that shows a must-show criterion, suggested scenes). A listing is **Ready** at 80 or more with no blocking issue. If some photos couldn't be analysed, it is **Partly checked**: criteria are marked *not checked* rather than missing.
 
 ## The photo standard
 
-`app/standards.yaml` holds, for each provider type, the scene list, required photos, minimum number of photos, the scenes allowed as the first photo, and the shared thresholds. STA can change it without touching code; every report records the standard's version.
+What a listing must show comes from **its own description**, as the provider edited it. `app/standards.yaml` adds, for each provider type, the minimum number of photos, the scenes it can recognise, scenes to **suggest** (tips that never block), **fallback** scenes used only when a description names nothing a photo can show, and `always_required` for any scene STA decides every listing of a type must show (empty by default). STA can change it without touching code; every report records the standard's version.
 
-| Provider type | Required photos | Minimum | First photo |
+| Provider type | Minimum | Suggested (never block) | Fallback when the description names nothing visual |
 |---|---|---|---|
-| Activities | activity in progress, location | 4 | activity in progress or guests taking part |
-| Accommodation | exterior, bedroom, bathroom (plus every room the description names) | 5 | exterior or bedroom |
-| Food & Beverages | dining area, a dish, entrance | 4 | a dish or the dining area |
-| Shopping | product close-up, product range | 3 | product range or store front |
+| Activities | 4 | guests taking part, location, guide, equipment | activity in progress, location |
+| Accommodation | 5 | exterior, bedroom, bathroom, living area, view | exterior, bedroom, bathroom |
+| Food & Beverages | 4 | a dish, dining area, entrance, a drink | dining area, a dish, entrance |
+| Shopping | 3 | product close-up, range, store front, interior | product close-up, product range |
 
 | Check | Blocks | Warns |
 |---|---|---|
@@ -79,12 +85,15 @@ flowchart LR
 | Overlays, collage, screenshot | yes | |
 | Unrelated or contradicts the description | yes | |
 | Duplicates | exact | near (hash distance 6 or less) |
-| Core claim without a photo | yes | |
-| Extra claim without a photo | | yes |
-| Required photo missing, too few photos | yes | |
+| Must-show criterion without a photo | yes | |
+| Nice-to-have criterion without a photo | | yes |
+| Too few photos | yes | |
+| First photo doesn't show a must-show criterion | | yes |
 | Stock or AI-looking, people, children, licence plates | | yes |
 
 ## API
+
+`POST /api/criteria` (form: `provider_type`, `description`) returns the criteria read from the description, for the provider to review. `from_standard` is true when the description named nothing visual and the provider type's fallback scenes are used.
 
 `POST /api/validate` (multipart form)
 
@@ -92,6 +101,7 @@ flowchart LR
 |---|---|
 | `provider_type` | `activities`, `accommodation`, `fnb` or `shopping` |
 | `description` | The listing description, Arabic or English |
+| `criteria` | Optional. JSON list of criteria as the provider edited them: the items from `/api/criteria`, or plain text such as `["قارب", "coral reef"]`. Omit it to read them from the description |
 | `photos` | One or more JPEG, PNG or WebP files, in display order; the first is the cover |
 
 ```bash
@@ -100,9 +110,15 @@ curl -F provider_type=shopping \
      -F photos=@samples/mock-photos/tshirt-rack.jpg \
      -F photos=@samples/mock-photos/coffee-cup.jpg \
      http://localhost:8000/api/validate
+
+curl -F provider_type=activities -F "description=رحلة غطس" \
+     -F 'criteria=["الغطس", "قارب"]' \
+     -F photos=@samples/mock-photos/snorkel-reef.jpg \
+     -F photos=@samples/mock-photos/boat-deck.jpg \
+     http://localhost:8000/api/validate
 ```
 
-The response is a `ListingReport` (see `app/models.py`) with `verdict`, `score`, `breakdown`, `claims` (each with `shown` and `photos`), `required`, `photos` (technical measurements, analysis, issues) and `issues` with `message_en` and `message_ar`. Interactive docs are at `/docs`.
+The response is a `ListingReport` (see `app/models.py`) with `verdict`, `score`, `breakdown`, `claims` (each criterion with `status`: shown, missing or unchecked, and `photos`), `rules` (enough photos, first photo), `suggested`, `photos` (technical measurements, analysis with `scenes`, `checked`, issues) and `issues` with `message_en` and `message_ar`. Interactive docs are at `/docs`.
 
 Also: `GET /api/standards` (the standard in use) and `GET /api/health`.
 
@@ -127,7 +143,7 @@ Write a class with `extract_claims` and `analyze_image` (see `app/providers/base
 VISION_PROVIDER=mock pytest -q
 ```
 
-The tests cover the technical measurements, the matching rules, and the four examples from the brief end to end through the API: a pool, a bedroom and bathroom, a salad against a steak, and t-shirts against a coffee cup.
+The tests cover the technical measurements, the matching rules, the four examples from the brief end to end through the API (a pool, a bedroom and bathroom, a salad against a steak, t-shirts against a coffee cup), and description-driven criteria: a two-word Arabic description, provider-edited criteria, one photo meeting several scenes, photos the demo cannot see, and the fallback when a description names nothing visual.
 
 ## Privacy
 
@@ -139,6 +155,7 @@ Photos and the description are sent to the configured model for the check. The s
 app/
   main.py              HTTP API and the demo page
   pipeline.py          one listing in, one report out
+  criteria.py          criteria from the description, the provider's edits, the fallback
   technical.py         local checks (OpenCV, Pillow, imagehash)
   matching.py          rules, score and verdict
   messages.py          every issue in English and Arabic

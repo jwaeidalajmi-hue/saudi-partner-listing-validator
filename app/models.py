@@ -6,27 +6,37 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Severity = Literal["block", "warn", "info"]
-Verdict = Literal["ready", "needs_changes"]
+Verdict = Literal["ready", "needs_changes", "partly_checked"]
+Source = Literal["description", "provider", "standard"]
 
 
 class Claim(BaseModel):
-    """Something the description says that a photo can show."""
+    """A criterion: something a photo of this listing should show.
+
+    Most come from the listing's own description. The provider can edit them,
+    remove them or add their own (source = "provider"). When the description
+    names nothing a photo can show, the provider type's fallback scenes are
+    used instead (source = "standard")."""
     id: str
-    label: str                      # in the description's language
+    label: str                      # as written, in the description's language
     label_en: str
     label_ar: str
-    kind: str                       # one of the provider type's claim_kinds
-    core: bool                      # what the listing is about: needs a photo
+    kind: str = "other"             # one of the provider type's claim_kinds
+    core: bool = True               # must be shown; False = nice to have
     scene: str | None = None        # the scene key a matching photo would have
+    source: Source = "description"
+    evidence_en: str = ""           # what a matching photo shows, e.g. "someone diving underwater"
+    evidence_ar: str = ""
 
 
 class ImageAnalysis(BaseModel):
     """What the vision model sees in one photo."""
-    scene: str = "other"            # a scene key of the provider type, or "other"
+    scene: str = "other"            # the main scene key of the provider type, or "other"
+    scenes: list[str] = Field(default_factory=list)          # every scene it shows (a diver over a reef: activity + place)
     scene_confidence: float = 0.0
     objects: list[str] = Field(default_factory=list)
-    supports: list[str] = Field(default_factory=list)      # claim ids this photo shows
-    contradicts: list[str] = Field(default_factory=list)   # claim ids this photo goes against
+    supports: list[str] = Field(default_factory=list)      # criterion ids this photo shows
+    contradicts: list[str] = Field(default_factory=list)   # criterion ids this photo goes against
     unrelated: bool = False         # shows nothing the listing is about
     overlays: list[str] = Field(default_factory=list)      # watermark, logo, text, border
     collage: bool = False
@@ -38,6 +48,9 @@ class ImageAnalysis(BaseModel):
     quality: int = 3                # 1 poor to 5 excellent, as a booking-page photo
     caption_en: str = ""
     caption_ar: str = ""
+
+    def all_scenes(self) -> list[str]:
+        return self.scenes or [self.scene]
 
 
 class Technical(BaseModel):
@@ -66,6 +79,7 @@ class Issue(BaseModel):
 class PhotoReport(BaseModel):
     index: int                      # 1-based
     filename: str
+    checked: bool                   # False: the vision step did not run on this photo
     technical: Technical
     analysis: ImageAnalysis
     issues: list[Issue]
@@ -73,8 +87,18 @@ class PhotoReport(BaseModel):
 
 class ClaimCoverage(BaseModel):
     claim: Claim
+    status: Literal["shown", "missing", "unchecked"]
     shown: bool
     photos: list[int]
+
+
+class RuleCheck(BaseModel):
+    """A rule of the provider type: enough photos, a first photo that shows what the listing is about."""
+    code: Literal["min_photos", "cover"]
+    label_en: str
+    label_ar: str
+    status: Literal["pass", "fail", "unchecked"]
+    photos: list[int] = Field(default_factory=list)
 
 
 class SceneCheck(BaseModel):
@@ -92,15 +116,24 @@ class Breakdown(BaseModel):
     completeness: float
 
 
+class CriteriaResponse(BaseModel):
+    provider_type: str
+    claims: list[Claim]
+    from_standard: bool             # True: the description named nothing a photo can show
+    engine: str
+
+
 class ListingReport(BaseModel):
     provider_type: str
     verdict: Verdict
     score: int
     breakdown: Breakdown
-    claims: list[ClaimCoverage]
-    required: list[SceneCheck]
+    claims: list[ClaimCoverage]     # the criteria and whether a photo shows each
+    rules: list[RuleCheck]
+    suggested: list[SceneCheck]     # tips for the provider type; never block
     min_photos: int
     photo_count: int
+    photos_checked: int
     cover_ok: bool
     photos: list[PhotoReport]
     issues: list[Issue]

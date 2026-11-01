@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Listing Photo Validator · Saudi Partner</title>
+<title>Listing Validator · Saudi Partner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@700&display=swap">
 <link rel="stylesheet" href="/web/styles.css">
@@ -23,7 +23,8 @@
   </header>
   <main class="main">
     <div class="crumb"><span data-t="crumb1"></span> › <b data-t="crumb2"></b></div>
-    <div class="statusbox"><p data-t="intro"></p><p class="engine" id="engine" hidden></p></div>
+    <div class="statusbox"><p data-t="intro"></p></div>
+    <div class="demo" id="engine" role="note" hidden></div>
 
     <form class="card" id="form" novalidate>
       <div class="sect">
@@ -42,6 +43,16 @@
         <div style="margin-top:14px"><label for="desc" data-t="desc"></label>
           <textarea id="desc" name="description" dir="auto"></textarea>
           <p class="hint" data-t="descHint"></p></div>
+        <div class="crit" id="critBox">
+          <div class="crit-head"><h3 id="critTitle" data-t="critTitle"></h3>
+            <button class="lnk" id="readBtn" type="button" data-t="readDesc"></button></div>
+          <p class="hint" id="critHint"></p>
+          <ul class="crits" id="crits" aria-labelledby="critTitle"></ul>
+          <div class="addrow">
+            <input type="text" id="critInput" dir="auto" maxlength="80">
+            <button class="btn out sm" id="critAdd" type="button" data-t="add"></button>
+          </div>
+        </div>
       </div>
       <div class="sect">
         <h2 data-t="photos"></h2>
@@ -60,7 +71,7 @@
         <div class="verdict">
           <div class="ring" id="ring"><b id="score">0</b></div>
           <div style="flex:1 1 220px;min-width:0">
-            <span class="vpill" id="vpill"></span>
+            <span class="vpill" id="vpill"></span> <span class="demo-tag" id="demoTag" hidden></span>
             <p id="summary" style="margin:8px 0 0"></p>
           </div>
           <div class="bars" id="bars"></div>

@@ -1,7 +1,15 @@
 # Photo standard per provider type.
-# STA owns this file: change scenes, required photos, minimum counts and thresholds
-# here without touching the code. Every report records `version`.
-version: "2026-11-01"
+# STA owns this file: change scenes, minimum counts and thresholds here without
+# touching the code. Every report records `version`.
+#
+# What a listing must show comes from its OWN description: every core thing the
+# description names needs a photo. This file only adds, per provider type:
+#   fallback_required  used only when a description names nothing a photo can show
+#   always_required    scenes STA wants on every listing of the type (empty = the
+#                      description decides)
+#   suggested          shown as tips when no photo has them; they never block
+#   cover              used for the first-photo rule when there are no criteria
+version: "2026-11-01.2"
 
 thresholds:
   full_hd: [1920, 1080]      # long edge, short edge
@@ -30,7 +38,9 @@ provider_types:
       equipment: {en: equipment or a vehicle, ar: المعدات أو المركبة}
       food:      {en: food that is included, ar: طعام مشمول في التجربة}
       pool:      {en: a swimming pool, ar: مسبح}
-    required: [activity, place]
+    fallback_required: [activity, place]
+    always_required: []
+    suggested: [people, place, host, equipment]
     cover: [activity, people]
     portrait_ok: []
     claim_kinds: [experience, place, equipment, inclusion, amenity]
@@ -50,7 +60,9 @@ provider_types:
       view:     {en: the view, ar: الإطلالة}
       dining:   {en: a dining area or restaurant, ar: منطقة الطعام أو المطعم}
       lobby:    {en: the lobby or reception, ar: الاستقبال}
-    required: [exterior, bedroom, bathroom]
+    fallback_required: [exterior, bedroom, bathroom]
+    always_required: []
+    suggested: [exterior, bedroom, bathroom, living, view]
     cover: [exterior, bedroom]
     portrait_ok: []
     claim_kinds: [space, bed, feature, amenity, view]
@@ -65,7 +77,9 @@ provider_types:
       dining:   {en: the dining area, ar: منطقة الجلوس}
       entrance: {en: the entrance or exterior, ar: المدخل أو الواجهة}
       kitchen:  {en: the kitchen or chef, ar: المطبخ أو الطاهي}
-    required: [dining, dish, entrance]
+    fallback_required: [dining, dish, entrance]
+    always_required: []
+    suggested: [dish, dining, entrance, drink]
     cover: [dish, dining]
     portrait_ok: [dish, drink]
     claim_kinds: [dish, drink, cuisine, feature]
@@ -80,7 +94,9 @@ provider_types:
       in_use:     {en: a product in use, ar: المنتج قيد الاستخدام}
       storefront: {en: the store front, ar: واجهة المتجر}
       interior:   {en: the store interior, ar: المتجر من الداخل}
-    required: [product, range]
+    fallback_required: [product, range]
+    always_required: []
+    suggested: [product, range, storefront, interior]
     cover: [range, storefront]
     portrait_ok: [product, in_use]
     claim_kinds: [product, attribute, feature]

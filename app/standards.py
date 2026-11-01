@@ -23,10 +23,12 @@ def validate(data: dict) -> dict:
         if not pt:
             raise StandardError(f"provider type '{key}' is missing")
         scenes = pt.get("scenes", {})
-        for field in ("required", "cover", "portrait_ok"):
+        for field in ("fallback_required", "always_required", "suggested", "cover", "portrait_ok"):
             for s in pt.get(field, []):
                 if s not in scenes:
                     raise StandardError(f"{key}.{field} names '{s}', which is not one of its scenes")
+        if not pt.get("fallback_required"):
+            raise StandardError(f"{key}.fallback_required needs at least one scene")
         if int(pt.get("min_photos", 0)) < 1:
             raise StandardError(f"{key}.min_photos must be 1 or more")
     return data
