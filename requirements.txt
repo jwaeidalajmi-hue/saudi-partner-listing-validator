@@ -1,0 +1,14 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+python-multipart==0.0.20
+pydantic==2.11.4
+anthropic>=0.50,<3
+pillow==11.2.1
+numpy==2.2.5
+opencv-python-headless==4.11.0.86
+imagehash==4.3.2
+pyyaml==6.0.2
+python-dotenv==1.1.0
+# tests
+pytest==8.3.5
+httpx==0.28.1

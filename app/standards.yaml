@@ -1,0 +1,86 @@
+# Photo standard per provider type.
+# STA owns this file: change scenes, required photos, minimum counts and thresholds
+# here without touching the code. Every report records `version`.
+version: "2026-11-01"
+
+thresholds:
+  full_hd: [1920, 1080]      # long edge, short edge
+  hd: [1280, 720]            # below this blocks
+  uhd: [3840, 2160]          # labelled 4K
+  max_bytes: 3145728         # 3 MB, the current TXLoad upload limit
+  sharpness_pass: 100        # variance of the Laplacian (on a 1024 px copy)
+  sharpness_block: 50
+  brightness: [50, 215]      # mean 0-255
+  clipped_max: 0.05          # share of pixels at 0 or 255
+  near_duplicate_distance: 6 # perceptual hash
+  grayscale_saturation: 8    # mean saturation below this = black and white
+  ready_score: 80
+
+provider_types:
+
+  activities:
+    name: {en: Activities, ar: الأنشطة}
+    parent: {en: Activity, ar: النشاط}
+    min_photos: 4
+    scenes:
+      activity:  {en: the activity in progress, ar: النشاط أثناء التنفيذ}
+      people:    {en: guests taking part, ar: ضيوف يشاركون في التجربة}
+      place:     {en: the location or scenery, ar: الموقع أو المشهد}
+      host:      {en: the guide or host, ar: المرشد أو المضيف}
+      equipment: {en: equipment or a vehicle, ar: المعدات أو المركبة}
+      food:      {en: food that is included, ar: طعام مشمول في التجربة}
+      pool:      {en: a swimming pool, ar: مسبح}
+    required: [activity, place]
+    cover: [activity, people]
+    portrait_ok: []
+    claim_kinds: [experience, place, equipment, inclusion, amenity]
+
+  accommodation:
+    name: {en: Accommodation, ar: الإقامة}
+    parent: {en: Location, ar: الموقع}
+    min_photos: 5
+    scenes:
+      exterior: {en: the building exterior, ar: واجهة المبنى}
+      bedroom:  {en: a bedroom, ar: غرفة النوم}
+      bathroom: {en: a bathroom, ar: دورة المياه}
+      living:   {en: a living area, ar: منطقة الجلوس}
+      kitchen:  {en: a kitchen, ar: المطبخ}
+      pool:     {en: a swimming pool, ar: المسبح}
+      gym:      {en: a gym, ar: النادي الرياضي}
+      view:     {en: the view, ar: الإطلالة}
+      dining:   {en: a dining area or restaurant, ar: منطقة الطعام أو المطعم}
+      lobby:    {en: the lobby or reception, ar: الاستقبال}
+    required: [exterior, bedroom, bathroom]
+    cover: [exterior, bedroom]
+    portrait_ok: []
+    claim_kinds: [space, bed, feature, amenity, view]
+
+  fnb:
+    name: {en: Food & Beverages, ar: الأطعمة والمشروبات}
+    parent: {en: Venue, ar: المطعم}
+    min_photos: 4
+    scenes:
+      dish:     {en: a dish, ar: طبق}
+      drink:    {en: a drink, ar: مشروب}
+      dining:   {en: the dining area, ar: منطقة الجلوس}
+      entrance: {en: the entrance or exterior, ar: المدخل أو الواجهة}
+      kitchen:  {en: the kitchen or chef, ar: المطبخ أو الطاهي}
+    required: [dining, dish, entrance]
+    cover: [dish, dining]
+    portrait_ok: [dish, drink]
+    claim_kinds: [dish, drink, cuisine, feature]
+
+  shopping:
+    name: {en: Shopping, ar: التسوق}
+    parent: {en: Store, ar: المتجر}
+    min_photos: 3
+    scenes:
+      product:    {en: a product close-up, ar: المنتج عن قرب}
+      range:      {en: the product range or display, ar: تشكيلة المنتجات أو العرض}
+      in_use:     {en: a product in use, ar: المنتج قيد الاستخدام}
+      storefront: {en: the store front, ar: واجهة المتجر}
+      interior:   {en: the store interior, ar: المتجر من الداخل}
+    required: [product, range]
+    cover: [range, storefront]
+    portrait_ok: [product, in_use]
+    claim_kinds: [product, attribute, feature]

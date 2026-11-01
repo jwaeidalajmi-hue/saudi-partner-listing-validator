@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Listing Photo Validator · Saudi Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@700&display=swap">
+<link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+<div class="tx" id="tx" dir="rtl" lang="ar">
+  <div class="band" aria-hidden="true"></div>
+  <aside class="side">
+    <img class="logo" src="/web/assets/logo.png" alt="Saudi Partner">
+    <nav aria-label="TXLoad"><ul class="nav" id="nav"></ul></nav>
+  </aside>
+  <header class="head">
+    <div class="tools"><span class="avatar" aria-hidden="true"><i></i></span>
+      <button class="lang" id="langBtn" type="button"><span id="langLbl">AR-SA</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg></button></div>
+    <div class="who"><div class="prov">SAUDI PARTNER · PROTOTYPE</div><h1 data-t="title"></h1></div>
+    <div></div>
+  </header>
+  <main class="main">
+    <div class="crumb"><span data-t="crumb1"></span> › <b data-t="crumb2"></b></div>
+    <div class="statusbox"><p data-t="intro"></p><p class="engine" id="engine" hidden></p></div>
+
+    <form class="card" id="form" novalidate>
+      <div class="sect">
+        <h2 data-t="listing"></h2>
+        <div class="row">
+          <div class="f"><label for="ptype" data-t="ptype"></label>
+            <select id="ptype" name="provider_type">
+              <option value="activities" data-t="activities"></option>
+              <option value="accommodation" data-t="accommodation"></option>
+              <option value="fnb" data-t="fnb"></option>
+              <option value="shopping" data-t="shopping"></option>
+            </select></div>
+          <div class="f"><label for="sample" data-t="sample"></label>
+            <select id="sample"><option value="" data-t="sampleNone"></option></select></div>
+        </div>
+        <div style="margin-top:14px"><label for="desc" data-t="desc"></label>
+          <textarea id="desc" name="description" dir="auto"></textarea>
+          <p class="hint" data-t="descHint"></p></div>
+      </div>
+      <div class="sect">
+        <h2 data-t="photos"></h2>
+        <div class="grid" id="grid"></div>
+        <input type="file" id="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        <p class="hint" data-t="photosHint"></p>
+      </div>
+      <div class="sect actions">
+        <button class="btn" id="checkBtn" type="submit" data-t="check"></button>
+        <span class="status" id="status" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+
+    <section class="card" id="report" hidden aria-live="polite">
+      <div class="sect">
+        <div class="verdict">
+          <div class="ring" id="ring"><b id="score">0</b></div>
+          <div style="flex:1 1 220px;min-width:0">
+            <span class="vpill" id="vpill"></span>
+            <p id="summary" style="margin:8px 0 0"></p>
+          </div>
+          <div class="bars" id="bars"></div>
+        </div>
+      </div>
+      <div class="sect cols">
+        <div><h2 data-t="claimsTitle"></h2><ul class="checks" id="claims"></ul></div>
+        <div><h2 data-t="setTitle"></h2><ul class="checks" id="set"></ul></div>
+      </div>
+      <div class="sect cols">
+        <div><h2 data-t="fixTitle"></h2><ul class="issues" id="fix"></ul></div>
+        <div><h2 data-t="tipTitle"></h2><ul class="issues" id="tips"></ul></div>
+      </div>
+      <div class="sect"><h2 data-t="eachPhoto"></h2><div class="pcards" id="pcards"></div></div>
+      <div class="sect actions"><button class="btn out" type="button" id="jsonBtn" data-t="json"></button><span class="status" id="meta"></span></div>
+    </section>
+  </main>
+</div>
+<script src="/web/app.js"></script>
+</body>
+</html>

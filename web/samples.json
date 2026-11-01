@@ -1,0 +1,38 @@
+[
+  {
+    "provider_type": "activities",
+    "name": {"en": "Activities · Red Sea snorkelling trip", "ar": "الأنشطة · رحلة غطس سطحي في البحر الأحمر"},
+    "description": {
+      "en": "Half-day snorkelling trip by boat to the coral reefs off Jeddah. Our licensed guide briefs you on board, then you snorkel two reef sites. After the trip, relax at the beach club's swimming pool. Lunch is included.",
+      "ar": "رحلة غطس سطحي لنصف يوم بالقارب إلى الشعاب المرجانية قبالة جدة. يقدّم لك المرشد المرخّص شرحًا على متن القارب، ثم تمارس الغطس في موقعين للشعاب. بعد الرحلة استرخِ عند مسبح النادي الشاطئي. الغداء مشمول."
+    },
+    "mock_photos": ["snorkel-reef.jpg", "boat-deck.jpg", "beach-view.jpg", "guide-briefing.jpg", "coffee-cup.jpg"]
+  },
+  {
+    "provider_type": "accommodation",
+    "name": {"en": "Accommodation · AlUla desert lodge", "ar": "الإقامة · نُزل صحراوي في العُلا"},
+    "description": {
+      "en": "Desert lodge in AlUla with 12 suites. Each suite has a bedroom with a king bed and a private bathroom with a bathtub. Guests can use the outdoor swimming pool and the gym, and every suite has a view of the sandstone mountains.",
+      "ar": "نُزل صحراوي في العُلا يضم 12 جناحًا. في كل جناح غرفة نوم بسرير كبير ودورة مياه خاصة بحوض استحمام. يمكن للضيوف استخدام المسبح الخارجي والنادي الرياضي، ولكل جناح إطلالة على الجبال الرملية."
+    },
+    "mock_photos": ["exterior.jpg", "bedroom-king-bed.jpg", "pool.jpg", "view.jpg", "lobby.jpg"]
+  },
+  {
+    "provider_type": "fnb",
+    "name": {"en": "Food & Beverages · Fresh salad café", "ar": "الأطعمة والمشروبات · مقهى سلطات طازجة"},
+    "description": {
+      "en": "A healthy café in Riyadh serving fresh salads made to order, cold-pressed fresh juice and specialty coffee. Seating indoors and on a shaded outdoor terrace.",
+      "ar": "مقهى صحي في الرياض يقدّم سلطات طازجة تُحضّر عند الطلب، وعصيرًا طازجًا معصورًا على البارد، وقهوة مختصة. جلسات داخلية وجلسات خارجية مظللة."
+    },
+    "mock_photos": ["salad-bowl.jpg", "steak-plate.jpg", "dining-area.jpg", "entrance.jpg"]
+  },
+  {
+    "provider_type": "shopping",
+    "name": {"en": "Shopping · Printed t-shirt store", "ar": "التسوق · متجر قمصان مطبوعة"},
+    "description": {
+      "en": "A Jeddah store selling printed cotton t-shirts with Saudi heritage designs, in sizes from kids to XXL. Visit our store or order online.",
+      "ar": "متجر في جدة يبيع قمصان تي شيرت قطنية مطبوعة بتصاميم من التراث السعودي، بمقاسات من الأطفال حتى XXL. زر متجرنا أو اطلب عبر الإنترنت."
+    },
+    "mock_photos": ["tshirt-closeup.jpg", "tshirt-rack.jpg", "storefront.jpg", "coffee-cup.jpg"]
+  }
+]
