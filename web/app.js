@@ -1,7 +1,7 @@
 /* Saudi Partner Listing Validator: demo page. Plain JS, no build step. */
 const T = {
   ar: {
-    title: 'فحص صور العرض', crumb1: 'الملف التعريفي', crumb2: 'فحص الصور مقابل الوصف',
+    title: 'فحص صور العرض', signOut: 'تسجيل الخروج', crumb1: 'الملف التعريفي', crumb2: 'فحص الصور مقابل الوصف',
     intro: 'اكتب وصف العرض بأسلوبك وأضف صوره. يقرأ الفحص من وصفك ما يجب أن تُظهره الصور، ويمكنك تعديله أو الإضافة إليه، ثم يقارن كل صورة به ويتحقق من الدقة والوضوح.',
     listing: 'العرض', ptype: 'فئة مزوّد الخدمة', activities: 'الأنشطة', accommodation: 'الإقامة', fnb: 'الأطعمة والمشروبات', shopping: 'التسوق',
     sample: 'مثال جاهز', sampleNone: 'بدون مثال', desc: 'الوصف', descHint: 'بالعربية أو الإنجليزية. اذكر ما سيراه الزائر: المرافق والغرف والأطباق والمنتجات.',
@@ -18,7 +18,7 @@ const T = {
     tiers: { below_hd: 'أقل من HD', hd: 'HD', full_hd: 'Full HD', '4k': '4K' }, other: 'محتوى آخر', photo: 'صورة', meta: 'المحرّك: {e} · المعيار: {v} · {ms} ث'
   },
   en: {
-    title: 'Listing Photo Check', crumb1: 'My Profile', crumb2: 'Photos vs description',
+    title: 'Listing Photo Check', signOut: 'Sign out', crumb1: 'My Profile', crumb2: 'Photos vs description',
     intro: 'Write the listing description in your own words and add its photos. The check reads from your description what the photos must show, which you can edit or add to, then compares every photo with it and checks resolution and sharpness.',
     listing: 'Listing', ptype: 'Provider type', activities: 'Activities', accommodation: 'Accommodation', fnb: 'Food & Beverages', shopping: 'Shopping',
     sample: 'Sample listing', sampleNone: 'No sample', desc: 'Description', descHint: 'Arabic or English. Name what guests will see: facilities, rooms, dishes, products.',
@@ -250,6 +250,6 @@ $('#langBtn').onclick = () => { L = L === 'ar' ? 'en' : 'ar'; renderStatic(); };
 (async () => {
   try { STD = await (await fetch('/api/standards')).json(); } catch {}
   try { SAMPLES = await (await fetch('/web/samples.json')).json(); } catch {}
-  try { const h = await (await fetch('/api/health')).json(); DEMO = h.engine === 'mock'; } catch {}
+  try { const h = await (await fetch('/api/health')).json(); DEMO = h.engine === 'mock'; const so = $('#signOut'); so.hidden = !h.login; so.onclick = () => { so.href = '/logout?lang=' + L; }; } catch {}
   renderStatic();
 })();

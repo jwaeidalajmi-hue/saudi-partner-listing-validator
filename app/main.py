@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import standards
+from . import auth, standards
 from .config import settings
 from .criteria import from_provider
 from .models import CriteriaResponse, ListingReport
@@ -22,12 +22,14 @@ ALLOWED = {"image/jpeg", "image/png", "image/webp"}
 app = FastAPI(title="Saudi Partner Listing Validator", version="0.2.0",
               description="Checks a listing's photos against criteria read from its own description "
                           "(which the provider can edit), plus a photo standard per provider type.")
+LOGIN = auth.install(app, "فحص صور العرض", "Listing Photo Check")   # on when LOGIN_USERS is set
 
 
 @app.get("/api/health")
 def health():
     return {"ok": True, "engine": settings.vision_provider, "demo": settings.vision_provider == "mock",
-            "model": settings.anthropic_model if settings.vision_provider == "anthropic" else None}
+            "model": settings.anthropic_model if settings.vision_provider == "anthropic" else None,
+            "login": LOGIN}
 
 
 @app.get("/api/standards")

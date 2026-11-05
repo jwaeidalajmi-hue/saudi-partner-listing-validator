@@ -132,6 +132,11 @@ Also: `GET /api/standards` (the standard in use) and `GET /api/health`.
 | `MAX_PHOTOS` | `20` | Per listing |
 | `MAX_UPLOAD_MB` | `15` | Hard cap per file for the API (the 3 MB TXLoad limit is a check, not a rejection) |
 | `VISION_CONCURRENCY` | `4` | Photos analysed in parallel |
+| `LOGIN_USERS` | | `name:password` pairs, comma-separated. When set, every page and API call needs a sign-in (see below) |
+
+### Sign-in
+
+To share the page with invited testers only, set `LOGIN_USERS`, for example `tester1:first-password,tester2:second-password`. In Codespaces add it under **Settings → Secrets and variables → Codespaces** as a repository secret, then stop and start the codespace so it reads it. Everyone then sees a sign-in page (Arabic or English) first; a sign-in lasts 12 hours and the page has a **Sign out** button. Names ignore upper/lower case; a password may contain `:` but not `,`. Ten wrong attempts from one address lock it out for 10 minutes. Changing the list signs everyone out. `/api/health` and the logo files stay open. Leave `LOGIN_USERS` unset for no sign-in (local runs, tests, CI). The code is `app/auth.py`.
 
 ## Use another model
 

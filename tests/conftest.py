@@ -9,6 +9,7 @@ from PIL import Image, ImageFilter
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 os.environ.setdefault("VISION_PROVIDER", "mock")
+os.environ.pop("LOGIN_USERS", None)       # the app tests run without a sign-in; test_login covers it
 
 
 def make_photo(w=1920, h=1080, blur=0, colour=(90, 140, 190), brightness=None, seed=1) -> bytes:
